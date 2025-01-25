@@ -27,6 +27,9 @@
 /* Exponentiation operator */
 "**" { return new java_cup.runtime.Symbol(sym.EXP); }
 
+/* Percent operator */
+"%"  { return new java_cup.runtime.Symbol(sym.PERCENT); }
+
 /* Multiplication and division */
 "*"  { return new java_cup.runtime.Symbol(sym.MUL);   }
 "/"  { return new java_cup.runtime.Symbol(sym.DIV);   }

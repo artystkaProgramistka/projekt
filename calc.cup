@@ -5,15 +5,15 @@ parser code {:
 :};
 
 /* Deklaracje terminali (tokenów) */
-terminal PLUS, MINUS, MUL, DIV, EXP, LPAREN, RPAREN;
+terminal PLUS, MINUS, MUL, DIV, EXP, PERCENT, LPAREN, RPAREN;
 terminal Double NUMBER;
 
 /*
-   Definiujemy cztery nieterminale dla czterech poziomów priorytetu:
+   Definiujemy cztery nieterminale dla różnych poziomów priorytetu:
    - expr (najwyższy poziom: +, -)
    - term (średni poziom: *, /)
-   - power (poziom dla potęgowania: **)
-   - factor (najniższy poziom: nawiasy i liczby)
+   - power (potęgowanie: **)
+   - factor (najniższy poziom: %, nawiasy, liczby)
 */
 nonterminal Double expr, term, power, factor;
 
@@ -52,9 +52,11 @@ power ::=
       {: RESULT = f; :}
   ;
 
-/* factor: liczba lub wyrażenie w nawiasach */
+/* factor: liczba, procenty, lub wyrażenie w nawiasach */
 factor ::=
-    LPAREN expr:e RPAREN
+    factor:f PERCENT
+      {: RESULT = f / 100.0; :} /* Percent operator */
+  | LPAREN expr:e RPAREN
       {: RESULT = e; :}
   | NUMBER:n
       {: RESULT = n; :}
