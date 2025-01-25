@@ -5,16 +5,17 @@ parser code {:
 :};
 
 /* Deklaracje terminali (tokenów) */
-terminal PLUS, MINUS, MUL, DIV, LPAREN, RPAREN;
+terminal PLUS, MINUS, MUL, DIV, EXP, LPAREN, RPAREN;
 terminal Double NUMBER;
 
 /*
-   Definiujemy trzy nieterminale dla trzech poziomów priorytetu:
+   Definiujemy cztery nieterminale dla czterech poziomów priorytetu:
    - expr (najwyższy poziom: +, -)
    - term (średni poziom: *, /)
+   - power (poziom dla potęgowania: **)
    - factor (najniższy poziom: nawiasy i liczby)
 */
-nonterminal Double expr, term, factor;
+nonterminal Double expr, term, power, factor;
 
 /* expr: odpowiada za + i - */
 expr ::=
@@ -28,17 +29,25 @@ expr ::=
 
 /* term: odpowiada za * i / */
 term ::=
-    term:t MUL factor:f
-      {: RESULT = t * f; :}
-  | term:t DIV factor:f
+    term:t MUL power:p
+      {: RESULT = t * p; :}
+  | term:t DIV power:p
       {:
-        if (f == 0.0) {
+        if (p == 0.0) {
           System.err.println("Błąd: dzielenie przez zero!");
           RESULT = 0.0;
         } else {
-          RESULT = t / f;
+          RESULT = t / p;
         }
       :}
+  | power:p
+      {: RESULT = p; :}
+  ;
+
+/* power: odpowiada za potęgowanie (**) */
+power ::=
+    factor:f EXP power:p
+      {: RESULT = Math.pow(f, p); :}  /* Right-associative rule */
   | factor:f
       {: RESULT = f; :}
   ;

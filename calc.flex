@@ -24,9 +24,14 @@
 "("  { return new java_cup.runtime.Symbol(sym.LPAREN); }
 ")"  { return new java_cup.runtime.Symbol(sym.RPAREN); }
 
-/* Operators */
+/* Exponentiation operator */
+"**" { return new java_cup.runtime.Symbol(sym.EXP); }
+
+/* Multiplication and division */
 "*"  { return new java_cup.runtime.Symbol(sym.MUL);   }
 "/"  { return new java_cup.runtime.Symbol(sym.DIV);   }
+
+/* Addition and subtraction */
 "+"  { return new java_cup.runtime.Symbol(sym.PLUS);  }
 "-"  { return new java_cup.runtime.Symbol(sym.MINUS); }
 
