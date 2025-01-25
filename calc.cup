@@ -1,0 +1,52 @@
+import java_cup.runtime.Symbol;
+
+parser code {:
+  // Można dodać metody pomocnicze, np. do debugowania
+:};
+
+/* Deklaracje terminali (tokenów) */
+terminal PLUS, MINUS, MUL, DIV, LPAREN, RPAREN;
+terminal Double NUMBER;
+
+/*
+   Definiujemy trzy nieterminale dla trzech poziomów priorytetu:
+   - expr (najwyższy poziom: +, -)
+   - term (średni poziom: *, /)
+   - factor (najniższy poziom: nawiasy i liczby)
+*/
+nonterminal Double expr, term, factor;
+
+/* expr: odpowiada za + i - */
+expr ::=
+    expr:e PLUS term:t
+      {: RESULT = e + t; :}
+  | expr:e MINUS term:t
+      {: RESULT = e - t; :}
+  | term:t
+      {: RESULT = t; :}
+  ;
+
+/* term: odpowiada za * i / */
+term ::=
+    term:t MUL factor:f
+      {: RESULT = t * f; :}
+  | term:t DIV factor:f
+      {:
+        if (f == 0.0) {
+          System.err.println("Błąd: dzielenie przez zero!");
+          RESULT = 0.0;
+        } else {
+          RESULT = t / f;
+        }
+      :}
+  | factor:f
+      {: RESULT = f; :}
+  ;
+
+/* factor: liczba lub wyrażenie w nawiasach */
+factor ::=
+    LPAREN expr:e RPAREN
+      {: RESULT = e; :}
+  | NUMBER:n
+      {: RESULT = n; :}
+  ;
