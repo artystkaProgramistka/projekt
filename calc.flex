@@ -54,6 +54,12 @@
 "+"  { return new java_cup.runtime.Symbol(sym.PLUS);  }
 "-"  { return new java_cup.runtime.Symbol(sym.MINUS); }
 
+/* avg function */
+"avg" { return new java_cup.runtime.Symbol(sym.avg); }
+
+/* Comma for separating arguments in avg() */
+"," { return new java_cup.runtime.Symbol(sym.COMMA); }
+
 /*
    No <<EOF>> rule — our .cup grammar doesn't require EOF.
 */

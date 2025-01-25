@@ -5,17 +5,20 @@ parser code {:
 :};
 
 /* Deklaracje terminali (tokenów) */
-terminal PLUS, MINUS, MUL, DIV, EXP, PERCENT, LPAREN, RPAREN;
+terminal PLUS, MINUS, MUL, DIV, EXP, PERCENT, LPAREN, RPAREN, COMMA;
 terminal Double NUMBER;
+terminal avg;
 
 /*
-   Definiujemy cztery nieterminale dla różnych poziomów priorytetu:
+   Definiujemy pięć nieterminali:
    - expr (najwyższy poziom: +, -)
    - term (średni poziom: *, /)
    - power (potęgowanie: **)
-   - factor (najniższy poziom: %, nawiasy, liczby)
+   - factor (najniższy poziom: %, nawiasy, liczby, avg)
+   - arg_list (lista argumentów dla avg())
 */
 nonterminal Double expr, term, power, factor;
+nonterminal AvgResult arg_list;
 
 /* expr: odpowiada za + i - */
 expr ::=
@@ -52,12 +55,22 @@ power ::=
       {: RESULT = f; :}
   ;
 
-/* factor: liczba, procenty, lub wyrażenie w nawiasach */
+/* factor: liczba, procenty, nawiasy, lub avg() */
 factor ::=
-    factor:f PERCENT
-      {: RESULT = f / 100.0; :} /* Percent operator */
-  | LPAREN expr:e RPAREN
+    LPAREN expr:e RPAREN
       {: RESULT = e; :}
   | NUMBER:n
       {: RESULT = n; :}
+  | factor:f PERCENT
+      {: RESULT = f / 100.0; :}
+  | avg LPAREN arg_list:args RPAREN
+      {: RESULT = args.sum / args.count; :} /* Compute average */
+  ;
+
+/* arg_list: lista argumentów w avg() */
+arg_list ::=
+    expr:e
+      {: RESULT = new AvgResult(e, 1); :}
+  | expr:e COMMA arg_list:args
+      {: RESULT = new AvgResult(e + args.sum, 1 + args.count); :}
   ;
