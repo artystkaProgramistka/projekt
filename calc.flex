@@ -10,10 +10,26 @@
 /* Ignore whitespace */
 [ \t\n\r]+ { /* ignore */ }
 
-/* Numbers with optional decimal */
-[0-9]+(\.[0-9]+)? {
-  double val = Double.parseDouble(yytext());
-  return new java_cup.runtime.Symbol(sym.NUMBER, val);
+/* Numbers with optional decimal, and optional SI suffix */
+[0-9]+(\.[0-9]+)?[mMkG]? {
+    String text = yytext();
+    double val;
+
+    /* Check for SI suffix */
+    if (text.endsWith("m")) {
+        val = Double.parseDouble(text.substring(0, text.length() - 1)) * 0.001;
+    } else if (text.endsWith("k")) {
+        val = Double.parseDouble(text.substring(0, text.length() - 1)) * 1000;
+    } else if (text.endsWith("M")) {
+        val = Double.parseDouble(text.substring(0, text.length() - 1)) * 1_000_000;
+    } else if (text.endsWith("G")) {
+        val = Double.parseDouble(text.substring(0, text.length() - 1)) * 1_000_000_000;
+    } else {
+        /* No suffix */
+        val = Double.parseDouble(text);
+    }
+
+    return new java_cup.runtime.Symbol(sym.NUMBER, val);
 }
 
 /* "pi" and "e" as numeric constants */
