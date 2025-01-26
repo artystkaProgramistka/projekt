@@ -1,0 +1,73 @@
+1. Struktura Gramatyki i Priorytety Operatorów
+
+Decyzja:
+Gramatyka została podzielona na kilka poziomów nieterminali (expr, term, power, factor), co odzwierciedla hierarchię priorytetów operatorów:
+
+    expr obsługuje operatory dodawania (+) i odejmowania (-).
+    term obsługuje mnożenie (*) i dzielenie (/).
+    power obsługuje operator potęgowania (**).
+    factor obsługuje operatory procenta (%), nawiasy oraz funkcję avg.
+
+Uzasadnienie:
+Podział gramatyki na poziomy pozwala naturalnie odwzorować standardowe priorytety operatorów arytmetycznych. Dodatkowo, operator potęgowania został umieszczony na wyższym poziomie niż mnożenie i dzielenie, co odzwierciedla jego wyższy priorytet.
+2. Asocjatywność Operatora Potęgowania
+
+Decyzja:
+Operator potęgowania (**) został zaimplementowany jako operator prawostronnie asocjatywny, co oznacza, że wyrażenie 2 ** 3 ** 4 jest interpretowane jako 2 ** (3 ** 4).
+
+Uzasadnienie:
+W wielu językach programowania, takich jak Python, operator potęgowania jest prawostronnie asocjatywny. Taki wybór zapewnia zgodność z intuicyjnymi oczekiwaniami użytkowników oraz ułatwia implementację bardziej złożonych wyrażeń potęgowania.
+3. Implementacja Operatora Procenta
+
+Decyzja:
+Operator procenta (%) został zdefiniowany jako operator postfix, który dzieli wartość wyrażenia przez 100. Na przykład, 50% jest interpretowane jako 0.5.
+
+Uzasadnienie:
+Operator procenta jest często używany jako operator postfix w wielu językach i notacjach matematycznych. Taka implementacja umożliwia użytkownikom łatwe przekształcanie wartości procentowych na ich odpowiedniki dziesiętne bez konieczności używania dodatkowych funkcji.
+4. Obsługa Sufiksów SI w Lexerze
+
+Decyzja:
+Lexer został zaprojektowany tak, aby rozpoznawał liczby z opcjonalnymi sufiksami SI (m, k, M, G). Sufiksy te są automatycznie przeliczane na odpowiednie wartości mnożnikowe:
+
+    m → 0.001
+    k → 1,000
+    M → 1,000,000
+    G → 1,000,000,000
+
+Uzasadnienie:
+Przeniesienie logiki obsługi sufiksów SI do leksera upraszcza gramatykę parsera oraz umożliwia efektywne przetwarzanie liczbowych wartości z odpowiednimi mnożnikami już na etapie tokenizacji. Dzięki temu parser otrzymuje już przeliczone wartości, co zwiększa czytelność i prostotę implementacji.
+5. Implementacja Funkcji avg
+
+Decyzja:
+Funkcja avg została zaimplementowana jako funkcja przyjmująca dowolną liczbę argumentów typu wyrażenie, oddzielonych przecinkami. Średnia arytmetyczna jest obliczana jako suma wszystkich argumentów podzielona przez ich ilość.
+
+Uzasadnienie:
+Funkcja avg zwiększa funkcjonalność parsera, umożliwiając użytkownikom łatwe obliczanie średnich wartości bez konieczności ręcznego sumowania i dzielenia. Implementacja w parserze pozwala na naturalne włączenie tej funkcji do wyrażeń arytmetycznych, zachowując przy tym czytelność i elastyczność składni.
+6. Obsługa Stałych Matematycznych pi i e
+
+Decyzja:
+Lexer rozpoznaje stałe pi oraz e i przypisuje im odpowiednie wartości zmiennoprzecinkowe.
+
+Uzasadnienie:
+Dodanie stałych matematycznych zwiększa użyteczność parsera, umożliwiając użytkownikom bezpośrednie używanie powszechnie znanych wartości bez konieczności ich ręcznego wprowadzania.
+7. Obsługa Błędów Dzielenia Przez Zero
+
+Decyzja:
+W sekcji parsera odpowiedzialnej za dzielenie (/) wprowadzono sprawdzenie, czy dzielnik jest równy zero. W przypadku wykrycia takiej sytuacji, program wypisuje komunikat o błędzie i zwraca wartość 0.0.
+
+Uzasadnienie:
+Zapewnienie obsługi wyjątków, takich jak dzielenie przez zero, jest kluczowe dla stabilności i niezawodności parsera. Użytkownik jest informowany o błędzie, a parser unika nieoczekiwanych awarii.
+8. Ignorowanie Białych Znaków
+
+Decyzja:
+Lexer ignoruje wszystkie białe znaki (spacje, tabulatory, nowe linie) dzięki regule [ \t\n\r]+.
+
+Uzasadnienie:
+Ignorowanie białych znaków upraszcza składnię wejściową, umożliwiając użytkownikom formatowanie wyrażeń w sposób czytelny bez wpływu na interpretację przez parser.
+9. Elastyczność w Formacie Wyników
+
+Decyzja:
+Parser umożliwia wypisywanie wyników w różnych formatach liczbowych (np. 2, 2.0, 2.0000). Dla wyników niecałkowitych zapewniona jest precyzja co najmniej dwóch miejsc po przecinku.
+
+Uzasadnienie:
+Zapewnienie elastyczności w formacie wyników zwiększa użyteczność narzędzia, umożliwiając użytkownikom otrzymywanie wyników w preferowanym przez nich formacie bez utraty precyzji.

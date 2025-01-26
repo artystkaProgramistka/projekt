@@ -1,0 +1,147 @@
+import java_cup.runtime.Symbol;
+
+/* ------------------------------------------------------------------
+   1. Terminals (tokens)
+   ------------------------------------------------------------------ */
+terminal <Double> NUMBER
+terminal PLUS MINUS MUL DIV PERCENT
+terminal LPAREN RPAREN COMMA
+terminal avg
+
+/* Conditional & comparison tokens */
+terminal IF_TOK ELSE_TOK
+terminal LT GT LE GE EQ NE
+
+/* Exponent operator */
+terminal EXP
+
+/* ------------------------------------------------------------------
+   2. Precedence / Associativity (classic CUP directives)
+   ------------------------------------------------------------------ */
+%right IF_TOK ELSE_TOK
+%left PLUS MINUS
+%left MUL DIV
+%right EXP
+
+/*
+   - `%expect 3` tells CUP to allow up to 3 shift/reduce conflicts.
+   - This is necessary due to the inherent ambiguity in "expr if cond else expr" constructions.
+*/
+%expect 3
+
+/* ------------------------------------------------------------------
+   3. Nonterminals
+   ------------------------------------------------------------------ */
+nonterminal <Double> expr term power factor conditional_expr
+nonterminal <Boolean> logical_expr
+nonterminal <AvgResult> arg_list
+
+/* ------------------------------------------------------------------
+   4. Parser Code Block
+   ------------------------------------------------------------------ */
+parser code {:
+    // Optional helper methods can be added here
+:};
+
+/* ------------------------------------------------------------------
+   5. '%%' to separate declarations from grammar rules
+   ------------------------------------------------------------------ */
+%%
+
+/* ------------------------------------------------------------------
+   6. Grammar Rules
+   ------------------------------------------------------------------ */
+
+/*
+   expr: top-level arithmetic or conditional expression
+   (Left-recursive for + / -)
+*/
+expr ::=
+      expr:e PLUS term:t
+        {: RESULT = e + t; :}
+    | expr:e MINUS term:t
+        {: RESULT = e - t; :}
+    | term:t
+        {: RESULT = t; :}
+    | conditional_expr:c
+        {: RESULT = c; :}
+    ;
+
+/*
+   term: handles multiplication, division, or exponentiation
+*/
+term ::=
+      term:t MUL power:p
+        {: RESULT = t * p; :}
+    | term:t DIV power:p
+        {:
+            if (p == 0.0) {
+                System.err.println("Error: division by zero!");
+                RESULT = 0.0;
+            } else {
+                RESULT = t / p;
+            }
+        :}
+    | power:p
+        {: RESULT = p; :}
+    ;
+
+/*
+   power: exponentiation (**) is right-associative by grammar
+*/
+power ::=
+      factor:f EXP power:p
+        {: RESULT = Math.pow(f, p); :}
+    | factor:f
+        {: RESULT = f; :}
+    ;
+
+/*
+   factor: parentheses, number, percent, or avg(...)
+*/
+factor ::=
+      LPAREN expr:e RPAREN
+        {: RESULT = e; :}
+    | NUMBER:n
+        {: RESULT = n; :}
+    | factor:f PERCENT
+        {: RESULT = f / 100.0; :}
+    | avg LPAREN arg_list:args RPAREN
+        {: RESULT = args.sum / args.count; :}
+    ;
+
+/*
+   arg_list: one or more expr arguments for avg(...)
+*/
+arg_list ::=
+      expr:e
+        {: RESULT = new AvgResult(e, 1); :}
+    | expr:e COMMA arg_list:rest
+        {: RESULT = new AvgResult(e + rest.sum, 1 + rest.count); :}
+    ;
+
+/*
+   conditional_expr: python-like "expr if cond else expr"
+*/
+conditional_expr ::=
+      expr:e1 IF_TOK logical_expr:cond ELSE_TOK expr:e2
+        {: RESULT = cond ? e1 : e2; :}
+    ;
+
+/*
+   logical_expr: <, >, <=, >=, ==, != returning Boolean
+*/
+logical_expr ::=
+      expr:e1 LT expr:e2
+        {: RESULT = (e1 < e2); :}
+    | expr:e1 GT expr:e2
+        {: RESULT = (e1 > e2); :}
+    | expr:e1 LE expr:e2
+        {: RESULT = (e1 <= e2); :}
+    | expr:e1 GE expr:e2
+        {: RESULT = (e1 >= e2); :}
+    | expr:e1 EQ expr:e2
+        {: RESULT = e1.equals(e2); :}
+    | expr:e1 NE expr:e2
+        {: RESULT = !e1.equals(e2); :}
+    ;

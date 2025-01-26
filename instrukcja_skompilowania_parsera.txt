@@ -1,0 +1,11 @@
+Generowanie lexera:
+jflex calc.flex
+
+Generowanie parsera:
+java -jar java-cup-11a.jar calc.cup
+
+Kompilowanie:
+javac -cp .:java-cup-11a.jar *.java
+
+Uruchamianie:
+java -cp .:java-cup-11a.jar Main

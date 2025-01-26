@@ -1,0 +1,89 @@
+import java_cup.runtime.Symbol;
+
+/* Parser Code Block */
+parser code {:
+    // Można dodać metody pomocnicze, np. do debugowania
+:};
+
+/* Deklaracje terminali (tokenów) */
+terminal <Double> NUMBER;
+terminal PLUS MINUS MUL DIV EXP PERCENT LPAREN RPAREN COMMA LBRACE RBRACE;
+terminal avg;
+
+/* Precedence i Asocjatywność */
+%left PLUS MINUS
+%left MUL DIV
+%right EXP
+%left LBRACE RBRACE  /* Przykładowa precedencja dla nawiasów klamrowych */
+
+/* Oczekiwane konflikty shift/reduce */
+%expect 0  /* Zakładamy brak konfliktów */
+
+/* Deklaracje nieterminali */
+nonterminal <Double> expr, term, power, factor;
+nonterminal <AvgResult> arg_list;
+
+/* Separator między deklaracjami a regułami gramatycznymi */
+%%
+
+/* Główna reguła startowa */
+start ::= expr
+        ;
+
+/* Wyrażenie arytmetyczne */
+expr ::=
+      expr:e PLUS term:t
+        {: RESULT = e + t; :}
+    | expr:e MINUS term:t
+        {: RESULT = e - t; :}
+    | term:t
+        {: RESULT = t; :}
+    ;
+
+/* Wyrażenie term odpowiada za mnożenie i dzielenie */
+term ::=
+      term:t MUL power:p
+        {: RESULT = t * p; :}
+    | term:t DIV power:p
+        {:
+            if (p == 0.0) {
+                System.err.println("Błąd: dzielenie przez zero!");
+                RESULT = 0.0;
+            } else {
+                RESULT = t / p;
+            }
+        :}
+    | power:p
+        {: RESULT = p; :}
+    ;
+
+/* Wyrażenie power odpowiada za potęgowanie */
+power ::=
+      factor:f EXP power:p
+        {: RESULT = Math.pow(f, p); :}  /* Reguła prawostronna */
+    | factor:f
+        {: RESULT = f; :}
+    ;
+
+/* Wyrażenie factor odpowiada za liczby, procenty, nawiasy klamrowe, nawiasy okrągłe i funkcję avg */
+factor ::=
+      LPAREN expr:e RPAREN
+        {: RESULT = e; :}
+    | LBRACE expr:e RBRACE
+        {: RESULT = e; :}  /* Wyrażenie w trybie szesnastkowym */
+    | NUMBER:n
+        {: RESULT = n; :}
+    | factor:f PERCENT
+        {: RESULT = f / 100.0; :}
+    | avg LPAREN arg_list:args RPAREN
+        {: RESULT = args.sum / args.count; :}
+    ;
+
+/* Lista argumentów dla funkcji avg */
+arg_list ::=
+      expr:e
+        {: RESULT = new AvgResult(e, 1); :}
+    | expr:e COMMA arg_list:rest
+        {: RESULT = new AvgResult(e + rest.sum, 1 + rest.count); :}
+    ;
+
